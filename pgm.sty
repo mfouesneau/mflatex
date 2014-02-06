@@ -1,0 +1,194 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% pgm -- This package defines commands to make probabilistic graphical models
+%
+% Author:  M. Fouesneau
+%
+%
+% A graphical model is a probabilistic model for which a graph denotes the
+% conditional dependence structure between random variables. They are commonly
+% used in probability theory, (Bayesian) statistics, and machine learning.
+%
+% Commands
+% --------
+%    \plate
+%        A plate encapsulates (independent) processes in the model.
+%
+%        4 parameters: e.g.: \plate{galaxy}{(40,0)}{(570,240)}
+%            #1: plate's label that will be display in the top left corner 
+%            #2: top-left corner of the plate rectangle
+%            #3: bottom-right corner of the plate rectangle
+%
+%    \quantity
+%        Add a quantity to the model. A quantity is the representation of a
+%        random variable in a PGM.
+%        If the quantity is observed or fixed, refer to \observedquantity and
+%        \fixedquantity, respectively.
+%
+%        4 parameters: e.g.: \quantity{$\tau$}{(80, 60)}{tau}
+%            #1: any option to pass to \draw (default empty)
+%            #2: text
+%            #3: center position
+%            #4: node name
+%        TODO: make option fixed and observed instead of independent commands
+%
+%    \fixedquantity
+%        Add a fixed quantity to the model. A fixed quantity is assumed to be
+%        known, i.e., not a random variable.
+%
+%        4 parameters: e.g.: \fixedquantity{$\tau$}{(80, 60)}{tau}
+%            #1: any option to pass to \draw (default empty)
+%            #2: text
+%            #3: center position
+%            #4: node name
+%
+%    \observedquantity
+%        Add an observed quantity to the model. An observed quantity is a
+%        measurement of a random variable, i.e., an observable.
+%
+%        4 parameters: e.g.: \observedquantity{$\tau$}{(80, 60)}{tau}
+%            #1: any option to pass to \draw (default empty)
+%            #2: text
+%            #3: center position
+%            #4: node name
+%
+%    \relation
+%        a conditional relation between two quantities.
+%
+%        2 parameters: e.g. \relation{tau}{ts}
+%            #1: the conditional variable node's name 
+%            #2: the conditioned variable node's name
+%
+%
+% Global variables
+% ----------------
+%
+%   colors --------------------------------------
+%   use \definecolor to redefine
+%
+%      plate-draw-color: default {rgb}{.3, .3, .3}
+%          plate edge color
+%
+%      plate-fill-color: default {rgb}{0.95, 0.95, 0.95}
+%          plate fill color (\plateOpacity set to 0.5)
+%
+%      quantity-draw-color: default {rgb}{.0, .0, .0}
+%          quantity edgecolor (fill color in case of fixed quantity)
+%
+%      quantity-fill-color: default {rgb}{1., 1., 1.}
+%          quantity fill color
+%
+%      relation-draw-color: default {rgb}{.0, .0, .0}
+%          color to draw a relation
+%      
+%   shapes --------------------------------------
+%   use \def to redefine
+% 
+%      \plateLineWidth: default 1pt
+%          plate edge width
+%     
+%      \plateRoundedCorner: default 0cm
+%          radius of the rounding box of a plate 
+%     
+%      \quantityLineWidth: default 1pt
+%          edgewidth of the quantities
+%     
+%      \quantityCircleSize: default 20pt
+%          quantity node radius
+%     
+%      \relationLineWidth: default 1pt
+%          relation line width
+%     
+%      \relationHeadScale: default 2
+%          relation arrow head scaling
+%   
+%
+% Requires
+% --------
+%     tikz, color
+%
+%
+% ..ref: http://en.wikipedia.org/wiki/Graphical_model
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\ProvidesPackage{pgm}[2014/01/30 MF custom package]
+\RequirePackage{tikz}
+\RequirePackage{color}
+
+% plate definition
+\definecolor{plate-draw-color}{rgb}{.3, .3, .3}
+\definecolor{plate-fill-color}{rgb}{0.95, 0.95, 0.95}
+\def\plateLineWidth{1pt}
+\def\plateRoundedCorner{0cm}
+\def\plateOpacity{0.5}
+
+% quantity definition
+\definecolor{quantity-draw-color}{rgb}{.0, .0, .0}
+\definecolor{quantity-fill-color}{rgb}{1., 1., 1.}
+\def\quantityLineWidth{1pt}
+\def\quantityCircleSize{20pt}
+
+% relation definition
+\definecolor{relation-draw-color}{rgb}{.0, .0, .0}
+\def\relationLineWidth{1pt}
+\def\relationHeadScale{2}
+
+\usetikzlibrary{arrows}
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{intersections}
+\usetikzlibrary{calc}
+
+\tikzset{
+    old inner xsep/.estore in=\oldinnerxsep,
+    old inner ysep/.estore in=\oldinnerysep,
+    double circle/.style 2 args={
+        circle,
+        old inner xsep=\pgfkeysvalueof{/pgf/inner xsep},
+        old inner ysep=\pgfkeysvalueof{/pgf/inner ysep},
+        /pgf/inner xsep=\oldinnerxsep+#1,
+        /pgf/inner ysep=\oldinnerysep+#1,
+        alias=sourcenode,
+        append after command={
+        let     \p1 = (sourcenode.center),
+                \p2 = (sourcenode.east),
+                \n1 = {\x2-\x1-#1-0.5*\pgflinewidth}
+        in
+            node [inner sep=0pt, draw, circle, minimum width=2*\n1,at=(\p1),#2] {}
+        }
+    },
+    double circle/.default={2pt}{quantity-draw-color}
+}
+
+\providecommand{\plate}[4][]{
+  \path[ line join=miter, line cap=butt, miter limit=0.00, line
+	width=\plateLineWidth,rounded corners=\plateRoundedCorner,
+	draw=plate-draw-color, fill=plate-fill-color, fill opacity=\plateOpacity, #1 ]
+	#3 rectangle #4;
+  \path #3 + (10pt,10pt) node[anchor=west, color=plate-draw-color] {{\large \bf #2}};
+}
+
+\providecommand{\quantity}[4][]{
+  \draw [#1] #3 node[name=#4, shape=circle, draw=quantity-draw-color,
+  fill=quantity-fill-color, line width=\quantityLineWidth,
+  text width=2 * \quantityCircleSize, align=center] { #2 };
+}
+\providecommand{\observedquantity}[4][]{
+  \draw [#1] #3 node[double circle, name=#4, shape=circle, draw=quantity-draw-color,
+  fill=quantity-fill-color, line width=\quantityLineWidth,
+  text width=2 * \quantityCircleSize-2pt, align=center] { #2 };
+}
+
+\providecommand{\fixedquantity}[4][]{
+  \draw [#1] #3 node[circle, name=#4, shape=circle, draw=quantity-draw-color,
+  fill=quantity-draw-color, line width=\quantityLineWidth, label={[label distance=5pt]90:#2},
+  text width=6pt, align=center] {  };
+}
+
+\providecommand{\relation}[2]{
+   \draw[relation-draw-color, line width=\relationLineWidth,
+    decoration={markings, mark=at position 1 with {\arrow[scale=\relationHeadScale, relation-draw-color]{>}}},
+    postaction={decorate} 
+    ]
+    (#1) -- (#2);
+}

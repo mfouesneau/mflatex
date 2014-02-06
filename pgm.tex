@@ -1,0 +1,78 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicalmodel}
+
+\usepackage[active,tightpage]{preview}
+\PreviewEnvironment{tikzpicture}
+%make all math nice looking
+\everymath{\displaystyle}
+
+\begin{document}
+% outer sep: global separation between elements
+% inner sep: global separation with embeded elements
+% x: x-length units
+% y: y-length units
+\begin{tikzpicture}[y=1pt,x=1.pt, xscale=1., yscale=-1, inner sep=0pt, outer sep=0pt]
+  \begin{scope}
+
+    %host influence
+    \plate{galaxy}{(40,-10)}{(430,240)}
+    %\plate{disruption}{(45,20)}{(190,235)}
+    \quantity{$\tau$}{(80, 60)}{tau}
+    \quantity{$\tilde{t}$}{(160, 110)}{ts}
+    \quantity{$\frac{\rm dM}{\rm dt}$}{(160,200)}{dM/dt}
+    \quantity{$\gamma_d$}{(80,150)}{gd}
+    \quantity{$\gamma_e$}{(0,200)}{ge}
+
+    \relation{tau}{ts}
+    \relation{gd}{dM/dt}
+    \relation{ge}{dM/dt}
+    \relation{ts}{dM/dt}
+
+    % birth rate
+    \plate{birth rate}{(200, 10)}{(410, 190)}
+    \quantity{CIMF}{(300,60)}{cimf}
+    \quantity{CFH}{(370,60)}{cfh}
+    \quantity{M$_{i}$}{(240,150)}{Mi}
+    \quantity{t$_{\rm{age}}$}{(310,150)}{tage}
+
+    \relation{cimf}{Mi}
+    \relation{cfh}{tage}
+
+    %other
+    \quantity{M$_{\rm{pred}}$}{(240,280)}{Mpred}
+    \quantity{N$_{\rm{pred}}$}{(340, 280)}{Npred}
+    %\quantity{N$_{\rm{cl}}$}{(250, 400)}{Ncl}
+
+    \relation{Mpred}{Npred}
+    %\relation{Ncl}{Npred}
+
+    \relation{Mi}{Mpred}
+    \relation{tage}{Mpred}
+    \relation{dM/dt}{Mpred}
+
+    % extending the model -------------------------------------
+    \observedquantity{N$_{\rm{obs}}$}{(340, 360)}{Nobs}
+    \relation{Npred}{Nobs}
+
+    \fixedquantity{Completeness}{(140, 360)}{compl}
+    \relation{compl}{Nobs}
+
+    \quantity{$\alpha$}{(280, -40)}{alpha}
+    \fixedquantity{M$_{min}$}{(330, -40)}{Mmin}
+    \fixedquantity{M$_{max}$}{(380, -40)}{Mmax}
+    \relation{alpha}{cimf}
+    \relation{Mmin}{cimf}
+    \relation{Mmax}{cimf}
+
+    \fixedquantity{SFH}{(440, -30)}{sfh}
+    \relation{sfh}{cfh}
+
+    \quantity{$\Gamma$}{(460, 50)}{gamma}
+    \relation{gamma}{cfh}
+
+  \end{scope}
+
+  \end{tikzpicture}
+\end{document}
+
